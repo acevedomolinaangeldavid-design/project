@@ -1,0 +1,97 @@
+# Primera entrega
+
+**Asignatura:** Programación de computadores
+**Fecha:** 30 de agosto de 2026
+
+## 1. Integrantes del equipo
+
+- Joan Manuel Caicedo
+- Angel Acevedo
+- Maria Paula Hincapie
+
+## Repositorio de GitHub
+
+El proyecto se desarrollará en el siguiente repositorio de GitHub, donde se subirá todo el avance del código, la documentación y los reportes de cada entrega:
+
+https://github.com/acevedomolinaangeldavid-design/project.git
+
+## Procesos y herramientas que se planean utilizar
+
+A continuación se describe la investigación previa sobre los procesos, librerías y estructuras de datos que el grupo prevé utilizar para desarrollar el boceto de Paint. Esta es una propuesta inicial basada en lo que el grupo conoce hasta el momento y puede ajustarse conforme avance el desarrollo, reflejando dichos cambios en la segunda entrega.
+
+### Interfaz gráfica
+
+Utilizaremos la librería `tkinter`, incluida de forma nativa en Python, ya que no requiere instalación adicional y permite construir ventanas, botones y menús de manera sencilla. Sobre esta base se creará la ventana principal de la aplicación, que contendrá el lienzo de dibujo y los controles de la interfaz.
+
+La pantalla donde se dibujará se implementará con el widget `Canvas` de `tkinter`, configurado con una resolución mínima de 200x200 píxeles según lo exige el enunciado. Este widget permite dibujar formas, líneas y figuras directamente sobre una superficie y responde a eventos del mouse, lo cual es fundamental para las herramientas de dibujo.
+
+Se diseñará una barra de herramientas ubicada en la parte superior o lateral de la ventana, compuesta por botones que permitan alternar entre las distintas herramientas disponibles: lápiz, borrador, rectángulo, círculo y cubeta de relleno. Cada botón actualizará una variable de estado que indica la herramienta activa en cada momento.
+
+### Funciones de dibujo
+
+- **Lápiz:** se implementará capturando los eventos de mouse `Button-1` (clic inicial) y `B1-Motion` (arrastre con el botón presionado) sobre el `Canvas`. Cada vez que se detecte movimiento con el botón presionado, se dibujará un pequeño segmento de línea entre la posición anterior y la actual, generando así un trazo continuo que simula el efecto de dibujar a mano alzada.
+- **Borrador:** utilizará la misma lógica de captura de eventos que el lápiz, con la diferencia de que el color de trazo será el mismo color de fondo del lienzo. De esta forma, al "dibujar" con el borrador, en realidad se sobrescribe el área con el color de fondo, dando la sensación de borrar lo dibujado previamente.
+- **Llenar pantalla / cubeta:** se implementará un algoritmo de *flood fill* (relleno por inundación), que puede desarrollarse de forma recursiva o iterativa usando una pila o una cola (BFS). El algoritmo parte de un píxel seleccionado por el usuario, identifica el color original de esa región y reemplaza todos los píxeles conectados que comparten ese color por el nuevo color seleccionado, hasta llenar toda el área contigua.
+- **Figuras (rectángulo y círculo):** se capturará la posición del clic inicial (`Button-1`) como punto de origen y la posición al soltar el botón (`ButtonRelease-1`) como punto final. Con estas dos coordenadas se usarán las funciones `create_rectangle` y `create_oval` del `Canvas` para dibujar la figura correspondiente. Mientras el usuario arrastra el mouse, se mostrará una previsualización de la figura que se actualizará en tiempo real hasta que se suelte el clic.
+
+### Selección de color
+
+Se mostrará una paleta fija de 8 colores representados como pequeños cuadros o botones de colores distribuidos en la barra de herramientas, cumpliendo con el requisito mínimo de colores a elegir del enunciado.
+
+Al seleccionar cualquiera de los colores, se actualizará una variable de estado global (por ejemplo, `color_actual`) que almacena el color activo en ese momento. Esta variable será consultada por todas las herramientas de dibujo (lápiz, figuras, cubeta) para saber con qué color deben pintar, permitiendo que el cambio de color se refleje inmediatamente en cualquier herramienta que se use después.
+
+### Guardado y carga de archivos CSV
+
+El dibujo se representará internamente como una matriz o una lista de píxeles, donde cada elemento almacena su posición en el lienzo (coordenadas x, y) junto con el color que tiene asignado en ese momento. Esta estructura permitirá recorrer todo el lienzo de forma ordenada al momento de guardarlo.
+
+Para guardar el dibujo, se utilizará el módulo `csv` incluido en la biblioteca estándar de Python. Se recorrerá la matriz de píxeles y se escribirá cada uno como una fila del archivo, indicando su posición y su color, de manera que el archivo resultante contenga toda la información necesaria para reconstruir el dibujo más adelante.
+
+Para abrir un dibujo previamente guardado, se leerá el archivo CSV fila por fila utilizando el mismo módulo, y por cada fila leída se pintará el píxel correspondiente en el `Canvas` en la posición y con el color indicados, reconstruyendo así el dibujo original tal como fue guardado.
+
+### Estructuras de datos y organización del código
+
+El código se organizará en distintos módulos para mantenerlo ordenado y fácil de mantener:
+
+- `main.py`: interfaz gráfica y flujo general del programa.
+- `drawing.py`: lógica de dibujo (lápiz, borrador, figuras y cubeta).
+- `file_manager.py`: funciones de guardado y carga en CSV.
+
+Para mantener el estado de la pantalla en memoria mientras el usuario dibuja, se utilizarán diccionarios o matrices que asocien cada posición del `Canvas` con su color actual, de modo que esta estructura pueda actualizarse en cada acción de dibujo y luego exportarse fácilmente al archivo CSV.
+
+### Retos adicionales (opcional)
+
+Como reto adicional, se considera implementar una función de deshacer/rehacer (*undo/redo*), utilizando una pila que almacena los distintos estados del lienzo a medida que el usuario realiza cambios, permitiendo retroceder o avanzar entre dichos estados.
+
+### Manejo de eventos y arquitectura del programa
+
+Se utilizará el patrón de manejo de eventos propio de `tkinter`, donde cada acción del usuario (clic, arrastrar, soltar el botón, selección de un color o herramienta) dispara una función asociada mediante el método `bind`. Esto permitirá separar la lógica de cada herramienta en funciones independientes que se activan solo cuando corresponde, evitando que el código quede enredado en un único bloque.
+
+Se manejará una variable de estado central que controla qué herramienta está activa, qué color está seleccionado y si hay una acción de dibujo en curso (por ejemplo, si el usuario mantiene el clic presionado). Este estado se actualizará cada vez que el usuario interactúe con la barra de herramientas o con el lienzo.
+
+### Modelo de color y coordenadas
+
+Los colores se manejan en formato hexadecimal (por ejemplo, `#FF0000`), ya que es el formato que reciben de forma nativa las funciones de dibujo del `Canvas` en `tkinter`. Esto facilita tanto pintar en pantalla como guardar el color exacto en el archivo CSV sin necesidad de conversiones adicionales.
+
+Se establecerá un sistema de coordenadas basado directamente en los píxeles del `Canvas`, donde la esquina superior izquierda corresponde a la posición (0,0). Todas las funciones de dibujo, guardado y carga trabajarán sobre este mismo sistema para garantizar consistencia entre lo que se ve en pantalla y lo que se guarda en el archivo.
+
+### Validación de datos y manejo de errores
+
+Se implementarán validaciones al momento de cargar un archivo CSV, verificando que las filas tengan el formato esperado (posición y color válidos) antes de intentar dibujarlas, para evitar que un archivo corrupto o mal formado detenga la ejecución del programa.
+
+Se usará el manejo de excepciones de Python (`try/except`) en las operaciones de lectura y escritura de archivos, mostrando mensajes claros al usuario en caso de que el archivo no exista, no se pueda abrir o no tenga los permisos necesarios.
+
+### Control de versiones con Git y GitHub
+
+Se trabajará con control de versiones mediante Git, realizando commits frecuentes y descriptivos por cada funcionalidad implementada (por ejemplo: "agregar función de lápiz", "implementar guardado en CSV"), de modo que el historial del repositorio refleje el avance real del proyecto.
+
+Se utilizarán ramas (*branches*) para desarrollar funcionalidades de forma independiente antes de integrarlas a la rama principal, reduciendo el riesgo de conflictos cuando varios integrantes trabajen en distintas partes del programa al mismo tiempo.
+
+### Pruebas del programa
+
+Se realizarán pruebas manuales de cada herramienta (lápiz, borrador, figuras, cubeta, selección de color, guardado y carga) verificando que el comportamiento visual en el `Canvas` corresponda exactamente a la acción realizada por el usuario.
+
+Se probará el ciclo completo de guardado y carga con distintos dibujos, confirmando que un dibujo guardado y luego abierto se vea exactamente igual al original, para validar que no se pierda información en el proceso.
+
+## Uso de inteligencia artificial
+
+En caso de utilizar herramientas de IA durante el desarrollo del código, se dejará constancia explícita mediante comentarios en el código fuente y en el reporte final, incluyendo la explicación detallada de cualquier proceso o instrucción generada con su apoyo, tal como lo exige el enunciado del proyecto.
