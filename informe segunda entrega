@@ -1,0 +1,94 @@
+# Boceto de Paint en Python
+
+Paint básico hecho con Python y `tkinter`. Proyecto de la segunda entrega de Programación de Computadores, Escuela de Ciencias e Ingeniería, Universidad del Rosario.
+
+**Autores:** Joan Manuel Caicedo, Angel Acevedo y Maria Paula Hincapie
+
+## Archivos
+
+- `proyecto.py`: ventana, botones y eventos del mouse.
+- `drawing.py`: funciones que dibujan.
+
+## Funcionalidades implementadas
+
+- Lienzo de 500 x 400 píxeles.
+- Lápiz y borrador.
+- Dos figuras: rectángulo y círculo.
+- Paleta de ocho colores.
+- Botón Limpiar.
+
+**Pendiente para la entrega final:** cubeta de relleno (flood fill), guardar y abrir archivos CSV con manejo de errores, y deshacer/rehacer como reto opcional.
+
+## Variables
+
+### Constantes globales (`proyecto.py`)
+
+| Variable | Valor | Qué hace |
+|---|---|---|
+| `COLORES` | Lista de 8 textos hexadecimales | Paleta de colores. Se usa para crear un botón por cada color. |
+| `FONDO` | `"#FFFFFF"` | Color de fondo del lienzo (blanco). El borrador pinta con este color. |
+| `ANCHO`, `ALTO` | 500 y 400 | Tamaño del lienzo en píxeles. Cumple el mínimo de 200 x 200. |
+
+### Variables de estado de la clase `Paint`
+
+| Variable | Valor inicial | Qué hace |
+|---|---|---|
+| `self.canvas` | Canvas de tkinter | Superficie donde se dibuja y que recibe los eventos del mouse. |
+| `self.herramienta` | `"lapiz"` | Herramienta activa: `"lapiz"`, `"borrador"`, `"rectangulo"` o `"circulo"`. |
+| `self.color` | `"#000000"` | Color activo. Lo consultan el lápiz y las figuras al dibujar. |
+| `self.grosor` | `3` | Ancho de la línea en píxeles. |
+| `self.x_ant`, `self.y_ant` | `None` | Posición anterior del mouse. El lápiz dibuja una línea desde aquí hasta la posición actual. |
+| `self.x_ini`, `self.y_ini` | `None` | Posición donde se hizo el clic. Es la esquina de partida de las figuras. |
+| `self.vista_previa` | `None` | Identificador de la figura temporal que se ve mientras se arrastra. Sirve para borrarla antes de dibujar la nueva. |
+
+Además, `e.x` y `e.y` son la posición actual del mouse dentro del lienzo y llegan en el parámetro `e` (el evento) de cada función de mouse.
+
+## Funciones
+
+### `drawing.py`
+
+| Función | Parámetros | Qué hace |
+|---|---|---|
+| `lapiz` | `canvas, x0, y0, x1, y1, color, grosor` | Dibuja una línea corta del punto anterior `(x0, y0)` al actual `(x1, y1)`. Muchas líneas seguidas forman el trazo. |
+| `borrador` | `canvas, x0, y0, x1, y1, color_fondo, grosor` | Llama a `lapiz` con el color de fondo y el grosor multiplicado por 3, así tapa lo dibujado. |
+| `figura` | `canvas, tipo, x0, y0, x1, y1, color, grosor` | Si `tipo` es `"rectangulo"` dibuja un rectángulo; en otro caso, un óvalo. Usa solo el contorno y devuelve el identificador de la figura. |
+
+### Métodos de la clase `Paint` (`proyecto.py`)
+
+| Método | Qué hace |
+|---|---|
+| `__init__` | Se ejecuta al crear el programa. Define las variables de estado, crea la barra y el lienzo, y conecta los tres eventos del mouse con sus funciones. |
+| `crear_barra` | Crea los botones de herramientas (lápiz, borrador, rectángulo, círculo), un botón por cada color de `COLORES` y el botón Limpiar. |
+| `elegir_herramienta` | Cambia `self.herramienta` a la herramienta del botón presionado. |
+| `elegir_color` | Cambia `self.color` al color del botón presionado. Si estaba el borrador, vuelve al lápiz. |
+| `al_presionar` | Se ejecuta al hacer clic. Guarda la posición del mouse en `x_ant`, `y_ant`, `x_ini` y `y_ini`. |
+| `al_arrastrar` | Se ejecuta mientras se mueve el mouse con el clic presionado. Con lápiz o borrador dibuja una línea. Con una figura borra la vista previa anterior y dibuja una nueva hasta la posición actual. Al final actualiza `x_ant` y `y_ant`. |
+| `al_soltar` | Se ejecuta al soltar el clic. Pone `vista_previa` en `None` para que la última figura quede fija y reinicia `x_ant` y `y_ant`. |
+
+> El botón Limpiar usa `canvas.delete("all")` para borrar todo el contenido del lienzo.
+
+## Eventos del mouse
+
+| Evento | Cuándo ocurre | Función que llama |
+|---|---|---|
+| `<Button-1>` | Al presionar el clic izquierdo | `al_presionar` |
+| `<B1-Motion>` | Al mover el mouse con el clic presionado | `al_arrastrar` |
+| `<ButtonRelease-1>` | Al soltar el clic | `al_soltar` |
+
+## Pruebas
+
+- **Lápiz:** al arrastrar el mouse aparece un trazo continuo del color elegido.
+- **Borrador:** tapa lo dibujado con el color de fondo.
+- **Rectángulo y círculo:** se ve la figura mientras se arrastra y queda fija al soltar.
+- **Colores:** al elegir otro color, la siguiente herramienta lo usa.
+
+## Uso de inteligencia artificial
+
+Usamos Claude como herramienta de apoyo durante el proyecto, principalmente para resolver dudas de la librería `tkinter` y para entender partes del código que nos parecían extrañas.
+El diseño del programa, la estructura de los archivos, las pruebas y la documentación son trabajo del equipo, y revisamos y entendemos el código entregado.
+
+Algunas partes que pueden parecer extrañas y que aprendimos con esa ayuda:
+
+- `lambda n=nombre` guarda el valor de cada botón dentro del ciclo.
+- `capstyle="round"` redondea las puntas de la línea.
+- `None` indica que una variable aún no tiene valor.
