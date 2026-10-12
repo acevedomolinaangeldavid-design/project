@@ -1,0 +1,93 @@
+# main.py - ventana principal del Paint (interfaz y manejo de eventos)
+# Nota de IA: este código fue elaborado con ayuda de Claude (IA).
+# - tk.Canvas: superficie donde se dibuja.
+# - bind(): conecta un evento del mouse con una función.
+# - event.x / event.y: posición del mouse dentro del Canvas.
+import tkinter as tk
+import drawing
+
+COLORES = ["#000000", "#FF0000", "#00FF00", "#0000FF",
+           "#FFFF00", "#FF8000", "#8000FF", "#8B4513"]
+FONDO = "#FFFFFF"
+ANCHO, ALTO = 500, 400  # mínimo exigido: 200 x 200
+
+
+class Paint:
+    def __init__(self, ventana):
+        ventana.title("Paint - Segunda entrega")
+
+        # Variables de estado: herramienta, color y última posición del mouse
+        self.herramienta = "lapiz"
+        self.color = COLORES[0]
+        self.grosor = 3
+        self.x_ant = self.y_ant = None
+        self.x_ini = self.y_ini = None
+        self.vista_previa = None
+
+        self.crear_barra(ventana)
+        self.canvas = tk.Canvas(ventana, width=ANCHO, height=ALTO,
+                                bg=FONDO, cursor="crosshair")
+        self.canvas.pack()
+
+        self.canvas.bind("<Button-1>", self.al_presionar)
+        self.canvas.bind("<B1-Motion>", self.al_arrastrar)
+        self.canvas.bind("<ButtonRelease-1>", self.al_soltar)
+
+    def crear_barra(self, ventana):
+        barra = tk.Frame(ventana)
+        barra.pack(fill="x")
+
+        for nombre in ["lapiz", "borrador", "rectangulo", "circulo"]:
+            tk.Button(barra, text=nombre.capitalize(),
+                      command=lambda n=nombre: self.elegir_herramienta(n)
+                      ).pack(side="left", padx=2, pady=2)
+
+        for c in COLORES:
+            tk.Button(barra, bg=c, width=2,
+                      command=lambda col=c: self.elegir_color(col)
+                      ).pack(side="left", padx=1)
+
+        tk.Button(barra, text="Limpiar",
+                  command=lambda: self.canvas.delete("all")
+                  ).pack(side="right", padx=2)
+
+    def elegir_herramienta(self, nombre):
+        self.herramienta = nombre
+
+    def elegir_color(self, color):
+        self.color = color
+        # Si estaba el borrador, volver al lápiz al cambiar de color
+        if self.herramienta == "borrador":
+            self.herramienta = "lapiz"
+
+    # ---- Eventos del mouse ----
+    def al_presionar(self, e):
+        self.x_ant, self.y_ant = e.x, e.y
+        self.x_ini, self.y_ini = e.x, e.y
+
+    def al_arrastrar(self, e):
+        if self.herramienta == "lapiz":
+            drawing.lapiz(self.canvas, self.x_ant, self.y_ant, e.x, e.y,
+                          self.color, self.grosor)
+        elif self.herramienta == "borrador":
+            drawing.borrador(self.canvas, self.x_ant, self.y_ant, e.x, e.y,
+                             FONDO, self.grosor)
+        else:
+            # Figuras: se borra la vista previa anterior y se dibuja la nueva
+            if self.vista_previa:
+                self.canvas.delete(self.vista_previa)
+            self.vista_previa = drawing.figura(
+                self.canvas, self.herramienta, self.x_ini, self.y_ini,
+                e.x, e.y, self.color, self.grosor)
+        self.x_ant, self.y_ant = e.x, e.y
+
+    def al_soltar(self, e):
+        # La última vista previa queda como figura definitiva
+        self.vista_previa = None
+        self.x_ant = self.y_ant = None
+
+
+if __name__ == "__main__":
+    ventana = tk.Tk()
+    Paint(ventana)
+    ventana.mainloop()
